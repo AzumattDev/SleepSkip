@@ -150,12 +150,3 @@ internal static class GameStartPatch
             new Action<long, int>(SleepSkipPlugin.UpdateMenuNumberOnClient));
     }
 }
-
-[HarmonyPatch(typeof(Player), nameof(Player.SetLocalPlayer))]
-internal static class SetCharacterId
-{
-    private static void Postfix(Player __instance)
-    {
-        ZNet.instance.m_characterID = __instance.GetZDOID();
-    }
-}
