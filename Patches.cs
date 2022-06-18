@@ -38,7 +38,7 @@ internal static class GameEverybodyIsTryingToSleepPatch
         // If people are sleeping
         SleepSkipPlugin.AcceptedSleepingCount = count + SleepSkipPlugin.AcceptedSleepCount;
         // Calculate current ratio of people sleeping
-        double sleepRatio = (double)SleepSkipPlugin.AcceptedSleepingCount / allCharacterZdos.Count;
+        int sleepRatio = SleepSkipPlugin.AcceptedSleepingCount / allCharacterZdos.Count;
 
         // Update number display on the client
         foreach (ZNetPeer instanceMPeer in ZNet.instance.m_peers)

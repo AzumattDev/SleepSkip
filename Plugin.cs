@@ -47,13 +47,10 @@ namespace SleepSkip
             _ = ConfigSync.AddLockingConfigEntry(_serverConfigLocked);
 
 
-            ratio = config("1 - General", "Percent of players", 1.0,
+            ratio = config("1 - General", "Percent of players", 50,
                 new ConfigDescription(
                     "Threshold of players that need to be sleeping.\nValues are in percentage 0% - 100%.",
-                    new AcceptableValueRange<double>(1, 100)));
-
-            message = config("1 - General", "showMessage", true,
-                "Show a continuous message of the amount of players currently sleeping (if > 0)");
+                    new AcceptableValueRange<int>(1, 100)));
 
 
             Assembly assembly = Assembly.GetExecutingAssembly();
@@ -95,6 +92,7 @@ namespace SleepSkip
         internal static void ResetVariables(long senderId)
         {
             AcceptedSleepCount = 0;
+            AcceptedSleepingCount = 0;
             MenusOpened = false;
             Dialog!.SetActive(false);
         }
@@ -124,8 +122,7 @@ namespace SleepSkip
         #region ConfigOptions
 
         private static ConfigEntry<Toggle> _serverConfigLocked = null!;
-        internal static ConfigEntry<double> ratio = null!;
-        internal static ConfigEntry<bool> message = null!;
+        internal static ConfigEntry<int> ratio = null!;
 
         private ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description,
             bool synchronizedSetting = true)
