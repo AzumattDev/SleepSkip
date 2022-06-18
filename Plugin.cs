@@ -28,11 +28,13 @@ namespace SleepSkip
 
         private static readonly ConfigSync ConfigSync = new(ModGUID)
             { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
-        
-        public static GameObject? Dialog;
-        internal static int acceptedSleepCount = 0;
 
-        public enum Toggle
+        public static GameObject? Dialog;
+        internal static int AcceptedSleepCount;
+        internal static int AcceptedSleepingCount = 0;
+        internal static bool MenusOpened = false;
+
+        private enum Toggle
         {
             On = 1,
             Off = 0
@@ -90,15 +92,32 @@ namespace SleepSkip
             }
         }
 
-        internal void ResetVariables()
+        internal static void ResetVariables(long senderId)
         {
-            
+            AcceptedSleepCount = 0;
+            MenusOpened = false;
+            Dialog!.SetActive(false);
         }
 
         internal static void OpenMenuOnClient(long senderId)
         {
-            acceptedSleepCount = count;
             Dialog!.SetActive(true);
+        }
+
+        internal static void UpdateSleepCount(long senderId)
+        {
+            AcceptedSleepCount += 1;
+        }
+
+        internal static void UpdateMenuNumberOnClient(long senderId, int numberCount)
+        {
+            AcceptedSleepingCount = numberCount;
+        }
+
+        internal static void SleepStopNotify(long senderId, string s)
+        {
+            if (!ZNet.instance.IsServer())
+                Player.m_localPlayer.Message(MessageHud.MessageType.Center, s);
         }
 
 
