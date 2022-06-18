@@ -120,8 +120,9 @@ internal static class MenuIsVisiblePatch
     static void Postfix(Menu __instance, ref bool __result)
     {
         if (!SleepSkipPlugin.Dialog || SleepSkipPlugin.Dialog?.activeSelf != true) return;
+        string person = SleepSkipPlugin.AcceptedSleepingCount > 1 ? "people want" : "person wants";
         SleepSkipPlugin.Dialog!.transform.Find("dialog/Exit").GetComponent<Text>().text =
-            $"{SleepSkipPlugin.AcceptedSleepingCount} people want to sleep. Do you?";
+            $"{SleepSkipPlugin.AcceptedSleepingCount} {person} to sleep. Do you?";
         __result = true;
     }
 }
