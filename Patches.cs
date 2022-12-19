@@ -34,6 +34,15 @@ internal static class GameEverybodyIsTryingToSleepPatch
             __result = false;
             return false;
         }
+        
+        // If the current DateTime.UtcNow is more than X minutes after SleepSkipPlugin.LastSleepCheck, allow sleeping
+        if (DateTime.UtcNow <= SleepSkipPlugin.LastSleepCheck.AddMinutes(SleepSkipPlugin.SleepDelayInMinutes.Value))
+        {
+            __result = false;
+            return false;
+        }
+        SleepSkipPlugin.LastSleepCheck = DateTime.UtcNow;
+
 
         // If people are sleeping
         SleepSkipPlugin.AcceptedSleepingCount = count + SleepSkipPlugin.AcceptedSleepCount;
@@ -98,7 +107,7 @@ internal static class MenuStartPatch
         ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStop");
         // Notify everyone that they canceled sleep
         ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify",
-            $"Sleep canceled by {Player.m_localPlayer.GetPlayerName()}");
+            string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
 
         ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "ResetEveryone");
     }
@@ -110,7 +119,7 @@ internal static class MenuStartPatch
         // Should update the value of how many accepted here.
         ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "UpdateSleepCount");
         ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", 1,
-            $"Sleep canceled by {Player.m_localPlayer.GetPlayerName()}");
+            string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
     }
 }
 
@@ -120,9 +129,12 @@ internal static class MenuIsVisiblePatch
     static void Postfix(Menu __instance, ref bool __result)
     {
         if (!SleepSkipPlugin.Dialog || SleepSkipPlugin.Dialog?.activeSelf != true) return;
-        string person = SleepSkipPlugin.AcceptedSleepingCount > 1 ? "people want" : "person wants";
+        string person = SleepSkipPlugin.AcceptedSleepingCount > 1
+            ? Localization.instance.Localize("$want")
+            : Localization.instance.Localize("$want_multiple");
         SleepSkipPlugin.Dialog!.transform.Find("dialog/Exit").GetComponent<Text>().text =
-            $"{SleepSkipPlugin.AcceptedSleepingCount} {person} to sleep. Do you?";
+            string.Format(Localization.instance.Localize("sleep_request"),
+                SleepSkipPlugin.AcceptedSleepingCount, person);
         __result = true;
     }
 }

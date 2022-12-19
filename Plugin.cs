@@ -1,9 +1,11 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Reflection;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
+using LocalizationManager;
 using ServerSync;
 using UnityEngine;
 
@@ -13,7 +15,7 @@ namespace SleepSkip
     public class SleepSkipPlugin : BaseUnityPlugin
     {
         internal const string ModName = "SleepSkip";
-        internal const string ModVersion = "1.0.3";
+        internal const string ModVersion = "1.0.4";
         internal const string Author = "Azumatt";
         private const string ModGUID = Author + "." + ModName;
         private static string ConfigFileName = ModGUID + ".cfg";
@@ -33,6 +35,7 @@ namespace SleepSkip
         internal static int AcceptedSleepCount;
         internal static int AcceptedSleepingCount = 0;
         internal static bool MenusOpened = false;
+        internal static DateTime LastSleepCheck = DateTime.MinValue;
 
         private enum Toggle
         {
@@ -42,6 +45,7 @@ namespace SleepSkip
 
         public void Awake()
         {
+            Localizer.Load();
             _serverConfigLocked = config("1 - General", "Lock Configuration", Toggle.On,
                 "If on, the configuration is locked and can be changed by server admins only.");
             _ = ConfigSync.AddLockingConfigEntry(_serverConfigLocked);
@@ -51,6 +55,10 @@ namespace SleepSkip
                 new ConfigDescription(
                     "Threshold of players that need to be sleeping.\nValues are in percentage 0% - 100%.",
                     new AcceptableValueRange<int>(1, 100)));
+            SleepDelayInMinutes = config("1 - General", "Sleep Delay", 5,
+                new ConfigDescription(
+                    "Delay in minutes before allowing the sleep request again.\nValues are in minutes 0 - 60.",
+                    new AcceptableValueRange<int>(0, 60)));
 
 
             Assembly assembly = Assembly.GetExecutingAssembly();
@@ -123,6 +131,7 @@ namespace SleepSkip
 
         private static ConfigEntry<Toggle> _serverConfigLocked = null!;
         internal static ConfigEntry<int> ratio = null!;
+        internal static ConfigEntry<int> SleepDelayInMinutes = null!;
 
         private ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description,
             bool synchronizedSetting = true)

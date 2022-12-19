@@ -1,0 +1,6 @@
+sleep_canceled_by: "Сон отменен {0}"
+sleep_request: "{0} {1} спать. Ты?" # Will appear like this: "7 players want to sleep. Do you?" or "1 player wants to sleep. Do you?" uses the variables below
+player: "игрок"
+player_plural: "игроки"
+want: "хотят"
+want_multiple: "хотят"
