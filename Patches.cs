@@ -34,54 +34,59 @@ internal static class GameEverybodyIsTryingToSleepPatch
             __result = false;
             return false;
         }
-        
+
         // If the current DateTime.UtcNow is more than X minutes after SleepSkipPlugin.LastSleepCheck, allow sleeping
-        if (DateTime.UtcNow <= SleepSkipPlugin.LastSleepCheck.AddMinutes(SleepSkipPlugin.SleepDelayInMinutes.Value))
+        if (DateTime.UtcNow > SleepSkipPlugin.LastSleepCheck.AddMinutes(SleepSkipPlugin.SleepDelayInMinutes.Value))
         {
-            __result = false;
-            return false;
-        }
-        SleepSkipPlugin.LastSleepCheck = DateTime.UtcNow;
+            SleepSkipPlugin.LastSleepCheck = DateTime.UtcNow;
 
 
-        // If people are sleeping
-        SleepSkipPlugin.AcceptedSleepingCount = count + SleepSkipPlugin.AcceptedSleepCount;
-        // Calculate current ratio of people sleeping
-        int sleepRatio = SleepSkipPlugin.AcceptedSleepingCount / allCharacterZdos.Count;
+            // If people are sleeping
+            SleepSkipPlugin.AcceptedSleepingCount = count + SleepSkipPlugin.AcceptedSleepCount;
+            // Calculate current ratio of people sleeping
+            int sleepRatio = SleepSkipPlugin.AcceptedSleepingCount / allCharacterZdos.Count;
 
-        // Update number display on the client
-        foreach (ZNetPeer instanceMPeer in ZNet.instance.m_peers)
-        {
-            ZRoutedRpc.instance.InvokeRoutedRPC(instanceMPeer.m_characterID.m_userID, "UpdateMenuNumberOnClient",
-                SleepSkipPlugin.AcceptedSleepingCount);
-        }
-
-        if (!SleepSkipPlugin.MenusOpened)
-        {
+            // Update number display on the client
             foreach (ZNetPeer instanceMPeer in ZNet.instance.m_peers)
             {
-                // Open menu on the client
-                ZRoutedRpc.instance.InvokeRoutedRPC(instanceMPeer.m_characterID.m_userID, "OpenMenuOnClient");
+                ZRoutedRpc.instance.InvokeRoutedRPC(instanceMPeer.m_characterID.m_userID, "UpdateMenuNumberOnClient",
+                    SleepSkipPlugin.AcceptedSleepingCount);
             }
 
-            SleepSkipPlugin.MenusOpened = true;
-        }
+            if (!SleepSkipPlugin.MenusOpened)
+            {
+                foreach (ZNetPeer instanceMPeer in ZNet.instance.m_peers)
+                {
+                    // Open menu on the client
+                    ZRoutedRpc.instance.InvokeRoutedRPC(instanceMPeer.m_characterID.m_userID, "OpenMenuOnClient");
+                }
+
+                SleepSkipPlugin.MenusOpened = true;
+            }
 
 
-        // If the ratio of the amount of players sleeping vs awake reaches the threshold, return true to sleep
-        if ((sleepRatio * 100) >= SleepSkipPlugin.ratio.Value)
-        {
-            SleepSkipPlugin.SleepSkipLogger.LogDebug(
-                $"Threshold of {SleepSkipPlugin.ratio.Value} reached, sleeping...");
-            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "ResetEveryone");
-            __result = true;
+            // If the ratio of the amount of players sleeping vs awake reaches the threshold, return true to sleep
+            if ((sleepRatio * 100) >= SleepSkipPlugin.ratio.Value)
+            {
+                SleepSkipPlugin.SleepSkipLogger.LogDebug(
+                    $"Threshold of {SleepSkipPlugin.ratio.Value} reached, sleeping...");
+                ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "ResetEveryone");
+                __result = true;
+                return false;
+            }
+
+            // Otherwise, result false
+            __result = false;
+
             return false;
         }
+        else
+        {
+                    __result = false;
+                    return false;
+        }
 
-        // Otherwise, result false
-        __result = false;
 
-        return false;
     }
 }
 
@@ -133,7 +138,7 @@ internal static class MenuIsVisiblePatch
             ? Localization.instance.Localize("$want")
             : Localization.instance.Localize("$want_multiple");
         SleepSkipPlugin.Dialog!.transform.Find("dialog/Exit").GetComponent<Text>().text =
-            string.Format(Localization.instance.Localize("sleep_request"),
+            string.Format(Localization.instance.Localize("$sleep_request"),
                 SleepSkipPlugin.AcceptedSleepingCount, person);
         __result = true;
     }
