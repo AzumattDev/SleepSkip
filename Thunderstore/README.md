@@ -59,6 +59,8 @@ For Questions or Comments, find me in the Odin Plus Team Discord or in mine:
 
 ***
 > # Update Information (Latest listed first)
+> ### 1.0.5
+> - Revert the cooldown change. It was causing issues with the mod. I will look into it more in the future.
 > ### 1.0.4
 > - Update to use a cooldown in minutes. This will prevent spamming the sleep request.
 > - Add localization support.

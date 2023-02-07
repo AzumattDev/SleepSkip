@@ -15,7 +15,7 @@ namespace SleepSkip
     public class SleepSkipPlugin : BaseUnityPlugin
     {
         internal const string ModName = "SleepSkip";
-        internal const string ModVersion = "1.0.4";
+        internal const string ModVersion = "1.0.5";
         internal const string Author = "Azumatt";
         private const string ModGUID = Author + "." + ModName;
         private static string ConfigFileName = ModGUID + ".cfg";
@@ -55,10 +55,10 @@ namespace SleepSkip
                 new ConfigDescription(
                     "Threshold of players that need to be sleeping.\nValues are in percentage 0% - 100%.",
                     new AcceptableValueRange<int>(1, 100)));
-            SleepDelayInMinutes = config("1 - General", "Sleep Delay", 5,
+            /*SleepDelayInMinutes = config("1 - General", "Sleep Delay", 5,
                 new ConfigDescription(
                     "Delay in minutes before allowing the sleep request again.\nValues are in minutes 0 - 60.",
-                    new AcceptableValueRange<int>(0, 60)));
+                    new AcceptableValueRange<int>(0, 60)));*/
 
 
             Assembly assembly = Assembly.GetExecutingAssembly();

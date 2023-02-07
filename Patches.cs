@@ -36,9 +36,9 @@ internal static class GameEverybodyIsTryingToSleepPatch
         }
 
         // If the current DateTime.UtcNow is more than X minutes after SleepSkipPlugin.LastSleepCheck, allow sleeping
-        if (DateTime.UtcNow > SleepSkipPlugin.LastSleepCheck.AddMinutes(SleepSkipPlugin.SleepDelayInMinutes.Value))
-        {
-            SleepSkipPlugin.LastSleepCheck = DateTime.UtcNow;
+        /*if (DateTime.UtcNow > SleepSkipPlugin.LastSleepCheck.AddMinutes(SleepSkipPlugin.SleepDelayInMinutes.Value))
+        {*/
+            //SleepSkipPlugin.LastSleepCheck = DateTime.UtcNow;
 
 
             // If people are sleeping
@@ -79,12 +79,12 @@ internal static class GameEverybodyIsTryingToSleepPatch
             __result = false;
 
             return false;
-        }
-        else
-        {
+        /*}*/
+        /*else
+        {*/
                     __result = false;
                     return false;
-        }
+        /*}*/
 
 
     }
