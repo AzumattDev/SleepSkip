@@ -49,7 +49,7 @@ internal static class GameEverybodyIsTryingToSleepPatch
             // Update number display on the client
             foreach (ZNetPeer instanceMPeer in ZNet.instance.m_peers)
             {
-                ZRoutedRpc.instance.InvokeRoutedRPC(instanceMPeer.m_characterID.m_userID, "UpdateMenuNumberOnClient",
+                ZRoutedRpc.instance.InvokeRoutedRPC(instanceMPeer.m_characterID.UserID, "UpdateMenuNumberOnClient",
                     SleepSkipPlugin.AcceptedSleepingCount);
             }
 
@@ -58,7 +58,7 @@ internal static class GameEverybodyIsTryingToSleepPatch
                 foreach (ZNetPeer instanceMPeer in ZNet.instance.m_peers)
                 {
                     // Open menu on the client
-                    ZRoutedRpc.instance.InvokeRoutedRPC(instanceMPeer.m_characterID.m_userID, "OpenMenuOnClient");
+                    ZRoutedRpc.instance.InvokeRoutedRPC(instanceMPeer.m_characterID.UserID, "OpenMenuOnClient");
                 }
 
                 SleepSkipPlugin.MenusOpened = true;
