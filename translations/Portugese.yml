@@ -1,4 +1,5 @@
 sleep_canceled_by: "O sono cancelado por {0}"
+sleep_canceled_reason: "{0} cancelado automaticamente. Eles estavam em combate."
 sleep_request: "{0} {1} para dormir. Você?" # Will appear like this: "7 players want to sleep. Do you?" or "1 player wants to sleep. Do you?" uses the variables below
 player: "jogador"
 player_plural: "jogadores"

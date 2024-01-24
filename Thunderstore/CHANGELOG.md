@@ -1,4 +1,9 @@
-﻿> # Update Information (Latest listed first)
+> # Update Information (Latest listed first)
+> ### 1.0.8
+> - Fix issue with menu popup. Mouse now appears correctly.
+> - Prevent the popup from appearing if the player is in combat. This automatically denies the popup resulting in a denied sleep request.
+> ### 1.0.7
+> - Update for Valheim 0.217.22
 > ### 1.0.6
 > - Update for Valheim 0.216.9
 > ### 1.0.5

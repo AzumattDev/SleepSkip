@@ -1,4 +1,5 @@
 sleep_canceled_by: "수면이 취소되었습니다 {0}"
+sleep_canceled_reason: "{0} 자동 취소. 그들은 전투 중이었습니다."
 sleep_request: "{0} {1} 수면. 당신은?" # Will appear like this: "7 players want to sleep. Do you?" or "1 player wants to sleep. Do you?" uses the variables below
 player: "플레이어"
 player_plural: "플레이어"

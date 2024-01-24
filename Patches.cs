@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using System.Reflection;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace SleepSkip;
@@ -26,7 +28,7 @@ internal static class GameEverybodyIsTryingToSleepPatch
         }
 
         // Count number of players in bed
-        int count = allCharacterZdos.Count(zdo => zdo.GetBool("inBed"));
+        int count = allCharacterZdos.Count(zdo => zdo.GetBool(ZDOVars.s_inBed));
 
         // Don't run the rest of the code if no one is in bed
         if (count <= 0)
@@ -38,55 +40,51 @@ internal static class GameEverybodyIsTryingToSleepPatch
         // If the current DateTime.UtcNow is more than X minutes after SleepSkipPlugin.LastSleepCheck, allow sleeping
         /*if (DateTime.UtcNow > SleepSkipPlugin.LastSleepCheck.AddMinutes(SleepSkipPlugin.SleepDelayInMinutes.Value))
         {*/
-            //SleepSkipPlugin.LastSleepCheck = DateTime.UtcNow;
+        //SleepSkipPlugin.LastSleepCheck = DateTime.UtcNow;
 
 
-            // If people are sleeping
-            SleepSkipPlugin.AcceptedSleepingCount = count + SleepSkipPlugin.AcceptedSleepCount;
-            // Calculate current ratio of people sleeping
-            int sleepRatio = SleepSkipPlugin.AcceptedSleepingCount / allCharacterZdos.Count;
+        // If people are sleeping
+        SleepSkipPlugin.AcceptedSleepingCount = count + SleepSkipPlugin.AcceptedSleepCount;
+        // Calculate current ratio of people sleeping
+        int sleepRatio = SleepSkipPlugin.AcceptedSleepingCount / allCharacterZdos.Count;
 
-            // Update number display on the client
+        // Update number display on the client
+        foreach (ZNetPeer instanceMPeer in ZNet.instance.m_peers)
+        {
+            ZRoutedRpc.instance.InvokeRoutedRPC(instanceMPeer.m_characterID.UserID, "UpdateMenuNumberOnClient", SleepSkipPlugin.AcceptedSleepingCount);
+        }
+
+        if (!SleepSkipPlugin.MenusOpened)
+        {
             foreach (ZNetPeer instanceMPeer in ZNet.instance.m_peers)
             {
-                ZRoutedRpc.instance.InvokeRoutedRPC(instanceMPeer.m_characterID.UserID, "UpdateMenuNumberOnClient",
-                    SleepSkipPlugin.AcceptedSleepingCount);
+                // Open menu on the client
+                ZRoutedRpc.instance.InvokeRoutedRPC(instanceMPeer.m_characterID.UserID, "OpenMenuOnClient");
             }
 
-            if (!SleepSkipPlugin.MenusOpened)
-            {
-                foreach (ZNetPeer instanceMPeer in ZNet.instance.m_peers)
-                {
-                    // Open menu on the client
-                    ZRoutedRpc.instance.InvokeRoutedRPC(instanceMPeer.m_characterID.UserID, "OpenMenuOnClient");
-                }
-
-                SleepSkipPlugin.MenusOpened = true;
-            }
+            SleepSkipPlugin.MenusOpened = true;
+        }
 
 
-            // If the ratio of the amount of players sleeping vs awake reaches the threshold, return true to sleep
-            if ((sleepRatio * 100) >= SleepSkipPlugin.ratio.Value)
-            {
-                SleepSkipPlugin.SleepSkipLogger.LogDebug(
-                    $"Threshold of {SleepSkipPlugin.ratio.Value} reached, sleeping...");
-                ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "ResetEveryone");
-                __result = true;
-                return false;
-            }
-
-            // Otherwise, result false
-            __result = false;
-
+        // If the ratio of the amount of players sleeping vs awake reaches the threshold, return true to sleep
+        if ((sleepRatio * 100) >= SleepSkipPlugin.ratio.Value)
+        {
+            SleepSkipPlugin.SleepSkipLogger.LogDebug($"Threshold of {SleepSkipPlugin.ratio.Value} reached, sleeping...");
+            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "ResetEveryone");
+            __result = true;
             return false;
+        }
+
+        // Otherwise, result false
+        __result = false;
+
+        return false;
         /*}*/
         /*else
         {*/
-                    __result = false;
-                    return false;
+        __result = false;
+        return false;
         /*}*/
-
-
     }
 }
 
@@ -95,8 +93,7 @@ internal static class MenuStartPatch
 {
     static void Postfix(Menu __instance)
     {
-        SleepSkipPlugin.Dialog = UnityEngine.Object.Instantiate(Menu.instance.m_quitDialog.gameObject,
-            Hud.instance.m_rootObject.transform.parent.parent, true);
+        SleepSkipPlugin.Dialog = UnityEngine.Object.Instantiate(Menu.instance.m_quitDialog.gameObject, Hud.instance.m_rootObject.transform.parent.parent, true);
         Button.ButtonClickedEvent noClicked = new();
         noClicked.AddListener(OnDeclineSleep);
         SleepSkipPlugin.Dialog.transform.Find("dialog/Button_no").GetComponent<Button>().onClick = noClicked;
@@ -111,8 +108,10 @@ internal static class MenuStartPatch
         // Send RPC to kick everyone from their bed
         ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStop");
         // Notify everyone that they canceled sleep
-        ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify",
-            string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
+        if(SleepSkipPlugin.InCombat)
+            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", string.Format(Localization.instance.Localize("$sleep_canceled_reason"), Player.m_localPlayer.GetPlayerName()));
+        else
+            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
 
         ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "ResetEveryone");
     }
@@ -123,8 +122,7 @@ internal static class MenuStartPatch
         //
         // Should update the value of how many accepted here.
         ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "UpdateSleepCount");
-        ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", 1,
-            string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
+        ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", 1, string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
     }
 }
 
@@ -137,9 +135,26 @@ internal static class MenuIsVisiblePatch
         string person = SleepSkipPlugin.AcceptedSleepingCount > 1
             ? Localization.instance.Localize("$want")
             : Localization.instance.Localize("$want_multiple");
-        SleepSkipPlugin.Dialog!.transform.Find("dialog/Exit").GetComponent<Text>().text =
-            string.Format(Localization.instance.Localize("$sleep_request"),
-                SleepSkipPlugin.AcceptedSleepingCount, person);
+        SleepSkipPlugin.Dialog!.transform.Find("dialog/Exit").GetComponent<TMP_Text>().text = string.Format(Localization.instance.Localize("$sleep_request"), SleepSkipPlugin.AcceptedSleepingCount, person);
+        __result = true;
+    }
+}
+
+[HarmonyPatch(typeof(Menu), nameof(Menu.Update))]
+internal class PreventMainMenu
+{
+    private static bool Prefix()
+    {
+        return !(SleepSkipPlugin.Dialog && SleepSkipPlugin.Dialog?.activeSelf == true);
+    }
+}
+
+[HarmonyPatch(typeof(TextInput), nameof(TextInput.IsVisible))]
+internal static class BlockInputs
+{
+    private static void Postfix(ref bool __result)
+    {
+        if (!SleepSkipPlugin.Dialog || SleepSkipPlugin.Dialog?.activeSelf != true) return;
         __result = true;
     }
 }
@@ -153,8 +168,7 @@ internal static class GameStartPatch
         ZRoutedRpc.instance.Register("OpenMenuOnClient", SleepSkipPlugin.OpenMenuOnClient);
 
         // SleepStopNotify
-        ZRoutedRpc.instance.Register("SleepStopNotify",
-            new Action<long, string>(SleepSkipPlugin.SleepStopNotify));
+        ZRoutedRpc.instance.Register("SleepStopNotify", new Action<long, string>(SleepSkipPlugin.SleepStopNotify));
 
         // Update Clients that Accepted Value
         ZRoutedRpc.instance.Register("UpdateSleepCount", SleepSkipPlugin.UpdateSleepCount);
@@ -163,7 +177,6 @@ internal static class GameStartPatch
         ZRoutedRpc.instance.Register("ResetEveryone", SleepSkipPlugin.ResetVariables);
 
         // Update the menu's number display on the client
-        ZRoutedRpc.instance.Register("UpdateMenuNumberOnClient",
-            new Action<long, int>(SleepSkipPlugin.UpdateMenuNumberOnClient));
+        ZRoutedRpc.instance.Register("UpdateMenuNumberOnClient", new Action<long, int>(SleepSkipPlugin.UpdateMenuNumberOnClient));
     }
 }
