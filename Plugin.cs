@@ -16,7 +16,7 @@ namespace SleepSkip
     public class SleepSkipPlugin : BaseUnityPlugin
     {
         internal const string ModName = "SleepSkip";
-        internal const string ModVersion = "1.0.9";
+        internal const string ModVersion = "1.1.0";
         internal const string Author = "Azumatt";
         private const string ModGUID = Author + "." + ModName;
         private static string ConfigFileName = ModGUID + ".cfg";
@@ -26,7 +26,7 @@ namespace SleepSkip
         public static readonly ManualLogSource SleepSkipLogger = BepInEx.Logging.Logger.CreateLogSource(ModName);
 
         private static readonly ConfigSync ConfigSync = new(ModGUID) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
-        
+
         internal static int AcceptedSleepCount;
         internal static int AcceptedSleepingCount = 0;
         internal static bool MenusOpened = false;
@@ -125,17 +125,14 @@ namespace SleepSkip
                     Localization.instance.Localize("$sleep_skip"),
                     string.Format(Localization.instance.Localize("$sleep_request"), AcceptedSleepingCount, person),
                     OnAcceptSleep,
-                    () =>
-                    {
-                        OnDeclineSleep();
-                        UnifiedPopup.Pop();
-                    }
+                    OnDeclineSleep
                 )
             );
         }
 
         internal static void OnDeclineSleep()
         {
+            SleepSkipPlugin.SleepSkipLogger.LogDebug("Declined sleep request");
             // Send RPC to kick everyone from their bed
             ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStop");
             // Notify everyone that they canceled sleep
@@ -145,13 +142,16 @@ namespace SleepSkip
                 ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
 
             ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "ResetEveryone");
+            UnifiedPopup.Pop();
         }
 
         internal static void OnAcceptSleep()
         {
+            SleepSkipPlugin.SleepSkipLogger.LogDebug("Accepted sleep request");
             // Should update the value of how many accepted here.
             ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "UpdateSleepCount");
             ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", 1, string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
+            UnifiedPopup.Pop();
         }
 
         internal static void UpdateSleepCount(long senderId)

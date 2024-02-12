@@ -89,11 +89,18 @@ static class UnifiedPopupIsVisiblePatch
 {
     static void Postfix(UnifiedPopup __instance, ref bool __result)
     {
-        if (!__result || __instance.headerText.text != Localization.instance.Localize("$sleep_skip")) return;
-        string person = SleepSkipPlugin.AcceptedSleepingCount > 1
-            ? Localization.instance.Localize("$want")
-            : Localization.instance.Localize("$want_multiple");
-        __instance.bodyText.text = string.Format(Localization.instance.Localize("$sleep_request"), SleepSkipPlugin.AcceptedSleepingCount, person);
+        if (__result)
+        {
+            if(UnifiedPopup.instance == null) return; // Sometimes this code can run before the actual instance is ready
+            if(UnifiedPopup.instance.headerText == null) return;
+            if (UnifiedPopup.instance.headerText.text != Localization.instance.Localize("$sleep_skip")) return;
+            string person = SleepSkipPlugin.AcceptedSleepingCount > 1
+                ? Localization.instance.Localize("$want")
+                : Localization.instance.Localize("$want_multiple");
+            UnifiedPopup.instance.bodyText.text = string.Format(Localization.instance.Localize("$sleep_request"), SleepSkipPlugin.AcceptedSleepingCount, person);
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
     }
 }
 
