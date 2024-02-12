@@ -9,8 +9,6 @@ using BepInEx.Logging;
 using HarmonyLib;
 using LocalizationManager;
 using ServerSync;
-using UnityEngine;
-using UnityEngine.UI;
 
 namespace SleepSkip
 {
@@ -18,7 +16,7 @@ namespace SleepSkip
     public class SleepSkipPlugin : BaseUnityPlugin
     {
         internal const string ModName = "SleepSkip";
-        internal const string ModVersion = "1.0.8";
+        internal const string ModVersion = "1.0.9";
         internal const string Author = "Azumatt";
         private const string ModGUID = Author + "." + ModName;
         private static string ConfigFileName = ModGUID + ".cfg";
@@ -28,8 +26,7 @@ namespace SleepSkip
         public static readonly ManualLogSource SleepSkipLogger = BepInEx.Logging.Logger.CreateLogSource(ModName);
 
         private static readonly ConfigSync ConfigSync = new(ModGUID) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
-
-        public static GameObject? Dialog;
+        
         internal static int AcceptedSleepCount;
         internal static int AcceptedSleepingCount = 0;
         internal static bool MenusOpened = false;
@@ -95,12 +92,10 @@ namespace SleepSkip
             AcceptedSleepingCount = 0;
             MenusOpened = false;
             InCombat = false;
-            Dialog!.SetActive(false);
         }
 
         internal static void OpenMenuOnClient(long senderId)
         {
-            if (Dialog == null) return;
             if (Player.m_localPlayer == null) return;
             Player? p = Player.m_localPlayer;
             List<Character> characters = new();
@@ -108,18 +103,55 @@ namespace SleepSkip
             if (characters.Where(character => character != null && character.GetComponent<MonsterAI>()).Any(character => character.GetComponent<MonsterAI>().IsAlerted()))
             {
                 InCombat = true;
-                p.Message(MessageHud.MessageType.Center, "Sleep request auto-denied, you are in combat!");
+                p.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$sleep_denied_combat"));
             }
 
             if (!InCombat)
             {
-                Dialog!.SetActive(true);
+                CreatePopup();
             }
             else
             {
-                Dialog!.SetActive(true);
-                Dialog.transform.Find("dialog/Button_no").GetComponent<Button>().onClick.Invoke();
+                CreatePopup();
+                UnifiedPopup.instance.buttonLeft.onClick.Invoke();
             }
+        }
+
+        internal static void CreatePopup()
+        {
+            string person = AcceptedSleepingCount > 1 ? Localization.instance.Localize("$want") : Localization.instance.Localize("$want_multiple");
+            UnifiedPopup.Push(
+                new YesNoPopup(
+                    Localization.instance.Localize("$sleep_skip"),
+                    string.Format(Localization.instance.Localize("$sleep_request"), AcceptedSleepingCount, person),
+                    OnAcceptSleep,
+                    () =>
+                    {
+                        OnDeclineSleep();
+                        UnifiedPopup.Pop();
+                    }
+                )
+            );
+        }
+
+        internal static void OnDeclineSleep()
+        {
+            // Send RPC to kick everyone from their bed
+            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStop");
+            // Notify everyone that they canceled sleep
+            if (SleepSkipPlugin.InCombat)
+                ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", string.Format(Localization.instance.Localize("$sleep_canceled_reason"), Player.m_localPlayer.GetPlayerName()));
+            else
+                ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
+
+            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "ResetEveryone");
+        }
+
+        internal static void OnAcceptSleep()
+        {
+            // Should update the value of how many accepted here.
+            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "UpdateSleepCount");
+            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", 1, string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
         }
 
         internal static void UpdateSleepCount(long senderId)

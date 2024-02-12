@@ -2,11 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
-using System.Reflection;
-using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.UI;
 
 namespace SleepSkip;
 
@@ -88,74 +84,16 @@ internal static class GameEverybodyIsTryingToSleepPatch
     }
 }
 
-[HarmonyPatch(typeof(Menu), nameof(Menu.Start))]
-internal static class MenuStartPatch
+[HarmonyPatch(typeof(UnifiedPopup), nameof(UnifiedPopup.IsVisible))]
+static class UnifiedPopupIsVisiblePatch
 {
-    static void Postfix(Menu __instance)
+    static void Postfix(UnifiedPopup __instance, ref bool __result)
     {
-        SleepSkipPlugin.Dialog = UnityEngine.Object.Instantiate(Menu.instance.m_quitDialog.gameObject, Hud.instance.m_rootObject.transform.parent.parent, true);
-        Button.ButtonClickedEvent noClicked = new();
-        noClicked.AddListener(OnDeclineSleep);
-        SleepSkipPlugin.Dialog.transform.Find("dialog/Button_no").GetComponent<Button>().onClick = noClicked;
-        Button.ButtonClickedEvent yesClicked = new();
-        yesClicked.AddListener(OnAcceptSleep);
-        SleepSkipPlugin.Dialog.transform.Find("dialog/Button_yes").GetComponent<Button>().onClick = yesClicked;
-    }
-
-    private static void OnDeclineSleep()
-    {
-        SleepSkipPlugin.Dialog!.SetActive(false);
-        // Send RPC to kick everyone from their bed
-        ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStop");
-        // Notify everyone that they canceled sleep
-        if(SleepSkipPlugin.InCombat)
-            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", string.Format(Localization.instance.Localize("$sleep_canceled_reason"), Player.m_localPlayer.GetPlayerName()));
-        else
-            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
-
-        ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "ResetEveryone");
-    }
-
-    private static void OnAcceptSleep()
-    {
-        SleepSkipPlugin.Dialog!.SetActive(false);
-        //
-        // Should update the value of how many accepted here.
-        ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "UpdateSleepCount");
-        ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", 1, string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
-    }
-}
-
-[HarmonyPatch(typeof(Menu), nameof(Menu.IsVisible))]
-internal static class MenuIsVisiblePatch
-{
-    static void Postfix(Menu __instance, ref bool __result)
-    {
-        if (!SleepSkipPlugin.Dialog || SleepSkipPlugin.Dialog?.activeSelf != true) return;
+        if (!__result || __instance.headerText.text != Localization.instance.Localize("$sleep_skip")) return;
         string person = SleepSkipPlugin.AcceptedSleepingCount > 1
             ? Localization.instance.Localize("$want")
             : Localization.instance.Localize("$want_multiple");
-        SleepSkipPlugin.Dialog!.transform.Find("dialog/Exit").GetComponent<TMP_Text>().text = string.Format(Localization.instance.Localize("$sleep_request"), SleepSkipPlugin.AcceptedSleepingCount, person);
-        __result = true;
-    }
-}
-
-[HarmonyPatch(typeof(Menu), nameof(Menu.Update))]
-internal class PreventMainMenu
-{
-    private static bool Prefix()
-    {
-        return !(SleepSkipPlugin.Dialog && SleepSkipPlugin.Dialog?.activeSelf == true);
-    }
-}
-
-[HarmonyPatch(typeof(TextInput), nameof(TextInput.IsVisible))]
-internal static class BlockInputs
-{
-    private static void Postfix(ref bool __result)
-    {
-        if (!SleepSkipPlugin.Dialog || SleepSkipPlugin.Dialog?.activeSelf != true) return;
-        __result = true;
+        __instance.bodyText.text = string.Format(Localization.instance.Localize("$sleep_request"), SleepSkipPlugin.AcceptedSleepingCount, person);
     }
 }
 

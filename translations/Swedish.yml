@@ -1,3 +1,5 @@
+sleep_denied_combat: "Sömnförfrågan automatiskt nekad, du är i strid!"
+sleep_skip: "Begäran om att hoppa över sömn"
 sleep_canceled_by: "Sov avbruten av {0}"
 sleep_canceled_reason: "{0} avbruten automatiskt. De var i strid."
 sleep_request: "{0} {1} att sova. Vill du?" # Will appear like this: "7 spelare vill sova. Vill du?" or "1 spelare vill sova. Vill du?" uses the variables below

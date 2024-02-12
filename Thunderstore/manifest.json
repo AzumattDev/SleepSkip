@@ -1,6 +1,6 @@
 {
     "name": "SleepSkip",
-    "version_number": "1.0.8",
+    "version_number": "1.0.9",
     "website_url": "https://discord.gg/Pb6bVMnFb2",
     "description": "Server and Client mod that allows players to skip the night when a percentage of players agree to skip.",
     "dependencies": [

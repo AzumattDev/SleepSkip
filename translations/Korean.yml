@@ -1,3 +1,5 @@
+sleep_denied_combat: "수면 요청이 자동 거부되었습니다, 전투 중입니다!"
+sleep_skip: "수면 스킵 요청됨"
 sleep_canceled_by: "수면이 취소되었습니다 {0}"
 sleep_canceled_reason: "{0} 자동 취소. 그들은 전투 중이었습니다."
 sleep_request: "{0} {1} 수면. 당신은?" # Will appear like this: "7 players want to sleep. Do you?" or "1 player wants to sleep. Do you?" uses the variables below
