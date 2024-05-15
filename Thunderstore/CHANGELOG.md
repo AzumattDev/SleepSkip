@@ -1,4 +1,6 @@
 > # Update Information (Latest listed first)
+> ### 1.1.1
+> - Recompile for Ashlands
 > ### 1.1.0
 > - If you had fast enough FPS, the popup instance wouldn't be ready when the mod tried to use it, causing NRE spam. This should fix that issue.
 > ### 1.0.9
