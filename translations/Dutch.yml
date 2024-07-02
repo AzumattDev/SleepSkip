@@ -3,6 +3,7 @@ sleep_skip: "Slaap overslaan aangevraagd"
 sleep_canceled_by: "Slaap is geannuleerd door {0}"
 sleep_canceled_reason: "{0} geannuleerd automatisch. Ze waren in gevecht."
 sleep_request: "{0} {1} spelers willen slapen. Wil jij ook slapen?" # Will appear like this: "7 players want to sleep. Do you?" or "1 player wants to sleep. Do you?" uses the variables below
+sleep_warning_time: "Slaapmelding verschijnt over {0} seconden"
 player: "speler"
 player_plural: "spelers"
 want: "wil"

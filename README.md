@@ -11,6 +11,9 @@ NOTE: This mod uses ServerSync and a File watcher. Changes to the server config 
 
 ---
 
+Popup will not appear if the player is in combat. This will automatically deny the sleep request.
+Configuration options are available for the amount of players needed in a bed to begin a vote as well as the amount needed to accept, the amount of warning time before a popup appears, and the ability to always accept/deny sleep requests.
+
 ### Made at the request of `Kysen#6031` on discord.
 ---
 <img align="center" width="1920" height="1080" src="https://i.imgur.com/gETGfPd.png">

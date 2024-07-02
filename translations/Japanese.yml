@@ -3,6 +3,7 @@ sleep_skip: "スリープスキップ要求"
 sleep_canceled_by: "睡眠がキャンセルされました {0}"
 sleep_canceled_reason: "{0} 自動キャンセル。 彼らは戦闘中でした。"
 sleep_request: "{0} {1} 睡眠。 あなたは？" # Will appear like this: "7 players want to sleep. Do you?" or "1 player wants to sleep. Do you?" uses the variables below
+sleep_warning_time: "スリープポップアップは {0} 秒後に表示されます"
 player: "プレイヤー"
 player_plural: "プレイヤー"
 want: "希望"

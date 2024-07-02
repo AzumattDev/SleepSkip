@@ -16,7 +16,7 @@ namespace SleepSkip
     public class SleepSkipPlugin : BaseUnityPlugin
     {
         internal const string ModName = "SleepSkip";
-        internal const string ModVersion = "1.1.1";
+        internal const string ModVersion = "1.2.0";
         internal const string Author = "Azumatt";
         private const string ModGUID = Author + "." + ModName;
         private static string ConfigFileName = ModGUID + ".cfg";
@@ -25,10 +25,11 @@ namespace SleepSkip
         private readonly Harmony _harmony = new(ModGUID);
         public static readonly ManualLogSource SleepSkipLogger = BepInEx.Logging.Logger.CreateLogSource(ModName);
 
-        private static readonly ConfigSync ConfigSync = new(ModGUID) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
+        private static readonly ConfigSync ConfigSync = new(ModGUID) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion, ModRequired = true};
 
         internal static int AcceptedSleepCount;
         internal static int AcceptedSleepingCount = 0;
+        internal static int WarningTimeCounter = 0;
         internal static bool MenusOpened = false;
         internal static DateTime LastSleepCheck = DateTime.MinValue;
         internal static bool InCombat = false;
@@ -39,6 +40,13 @@ namespace SleepSkip
             Off = 0
         }
 
+        internal enum AutoChoice
+        {
+            Ask,
+            AlwaysAccept,
+            AlwaysDecline,
+        }
+
         public void Awake()
         {
             Localizer.Load();
@@ -46,8 +54,11 @@ namespace SleepSkip
             _ = ConfigSync.AddLockingConfigEntry(_serverConfigLocked);
 
 
-            ratio = config("1 - General", "Percent of players", 50, new ConfigDescription("Threshold of players that need to be sleeping.\nValues are in percentage 0% - 100%.", new AcceptableValueRange<int>(1, 100)));
-            /*SleepDelayInMinutes = config("1 - General", "Sleep Delay", 5, new ConfigDescription("Delay in minutes before allowing the sleep request again.\nValues are in minutes 0 - 60.", new AcceptableValueRange<int>(0, 60)));*/
+            Ratio = config("1 - General", "Percent of players", 50, new ConfigDescription("Threshold of players that need to be sleeping.\nValues are in percentage 0% - 100%.", new AcceptableValueRange<int>(1, 100)));
+            PlayersNeeded = config("1 - General", "Players Needed", 2, new ConfigDescription("Amount of players needed in bed to even start the sleep process.", new AcceptableValueRange<int>(1, 100)));
+            WarningTime = config("1 - General", "Warning Time", 15, new ConfigDescription("Time in seconds before the sleep popup is displayed on the client.\nAccepted values are from 1 - 60. This limitation is courteous to the players inside the beds waiting.", new AcceptableValueRange<int>(1, 60)));
+
+            PopupAutoChoice = config("2 - Client Choices", "Popup Auto Choice", AutoChoice.Ask, new ConfigDescription("Auto choice for the popup on the client. Change only if you don't want to be asked and want to either always accept or always deny."), false);
 
 
             Assembly assembly = Assembly.GetExecutingAssembly();
@@ -92,6 +103,8 @@ namespace SleepSkip
             AcceptedSleepingCount = 0;
             MenusOpened = false;
             InCombat = false;
+            LastSleepCheck = DateTime.MinValue;
+            WarningTimeCounter = 0;
         }
 
         internal static void OpenMenuOnClient(long senderId)
@@ -108,7 +121,20 @@ namespace SleepSkip
 
             if (!InCombat)
             {
-                CreatePopup();
+                switch (PopupAutoChoice)
+                {
+                    case { Value: AutoChoice.AlwaysAccept }:
+                        CreatePopup();
+                        UnifiedPopup.instance.buttonRight.onClick.Invoke();
+                        break;
+                    case { Value: AutoChoice.AlwaysDecline }:
+                        CreatePopup();
+                        UnifiedPopup.instance.buttonLeft.onClick.Invoke();
+                        break;
+                    default:
+                        CreatePopup();
+                        break;
+                }
             }
             else
             {
@@ -137,11 +163,11 @@ namespace SleepSkip
             ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStop");
             // Notify everyone that they canceled sleep
             if (SleepSkipPlugin.InCombat)
-                ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", string.Format(Localization.instance.Localize("$sleep_canceled_reason"), Player.m_localPlayer.GetPlayerName()));
+                ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, nameof(SleepSkipPlugin.SleepStopNotify), string.Format(Localization.instance.Localize("$sleep_canceled_reason"), Player.m_localPlayer.GetPlayerName()));
             else
-                ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
+                ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, nameof(SleepSkipPlugin.SleepStopNotify), string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
 
-            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "ResetEveryone");
+            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, nameof(SleepSkipPlugin.ResetVariables));
             UnifiedPopup.Pop();
         }
 
@@ -149,8 +175,8 @@ namespace SleepSkip
         {
             SleepSkipPlugin.SleepSkipLogger.LogDebug("Accepted sleep request");
             // Should update the value of how many accepted here.
-            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "UpdateSleepCount");
-            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "SleepStopNotify", 1, string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
+            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, nameof(SleepSkipPlugin.UpdateSleepCount));
+            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, nameof(SleepSkipPlugin.SleepStopNotify), 1, string.Format(Localization.instance.Localize("$sleep_canceled_by"), Player.m_localPlayer.GetPlayerName()));
             UnifiedPopup.Pop();
         }
 
@@ -164,6 +190,13 @@ namespace SleepSkip
             AcceptedSleepingCount = numberCount;
         }
 
+        internal static void UpdateWarningTime(long senderId, int time)
+        {
+            WarningTimeCounter = time;
+            if (!ZNet.instance.IsServer())
+                Player.m_localPlayer.Message(WarningTimeCounter == WarningTime.Value ? MessageHud.MessageType.Center : MessageHud.MessageType.TopLeft, string.Format(Localization.instance.Localize("$sleep_warning_time"), WarningTimeCounter));
+        }
+
         internal static void SleepStopNotify(long senderId, string s)
         {
             if (!ZNet.instance.IsServer())
@@ -174,7 +207,10 @@ namespace SleepSkip
         #region ConfigOptions
 
         private static ConfigEntry<Toggle> _serverConfigLocked = null!;
-        internal static ConfigEntry<int> ratio = null!;
+        internal static ConfigEntry<int> Ratio = null!;
+        internal static ConfigEntry<int> PlayersNeeded = null!;
+        internal static ConfigEntry<int> WarningTime = null!;
+        internal static ConfigEntry<AutoChoice> PopupAutoChoice = null!;
         internal static ConfigEntry<int> SleepDelayInMinutes = null!;
 
         private ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true)

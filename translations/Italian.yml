@@ -3,6 +3,7 @@ sleep_skip: "Richiesta di salto del sonno"
 sleep_canceled_by: "Il sonno annullato da {0}"
 sleep_canceled_reason: "{0} annullato automaticamente. Erano in combattimento."
 sleep_request: "{0} {1} per dormire. Lo fai?" # Will appear like this: "7 players want to sleep. Do you?" or "1 player wants to sleep. Do you?" uses the variables below
+sleep_warning_time: "La finestra di sonno apparirà tra {0} secondi"
 player: "giocatore"
 player_plural: "giocatori"
 want: "vuole"

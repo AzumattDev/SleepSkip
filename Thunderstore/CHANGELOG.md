@@ -1,4 +1,9 @@
 > # Update Information (Latest listed first)
+> ### 1.2.0
+> - Add a configuration option to always accept/deny sleep requests. (Client option, not synced with server)
+> - Add configuration option for the amount of players needed in a bed to begin a vote. Default 2 (Server option, synced with server)
+> - Add a configuration option to control the amount of warning time before a popup appears. Default: 15 seconds (Server option, synced with server)
+> - Update Localization files (English, Chinese, Dutch, French, German, Italian, Japanese, Korean, Polish, Portuguese, Russian, Spanish, Swedish)
 > ### 1.1.1
 > - Recompile for Ashlands
 > ### 1.1.0
