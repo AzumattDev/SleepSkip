@@ -27,8 +27,10 @@ internal static class GameEverybodyIsTryingToSleepPatch
         int count = allCharacterZdos.Count(zdo => zdo.GetBool(ZDOVars.s_inBed));
 
         // Don't run the rest of the code if no one is in bed
-        if (count <= 0 || count < SleepSkipPlugin.PlayersNeeded.Value)
+        if (count <= 0 || count > 1 && count < SleepSkipPlugin.PlayersNeeded.Value)
         {
+            SleepSkipPlugin.LastSleepCheck = DateTime.MinValue;
+            SleepSkipPlugin.MenusOpened = false;
             __result = false;
             return false;
         }
@@ -69,7 +71,7 @@ internal static class GameEverybodyIsTryingToSleepPatch
         // If people are sleeping
         SleepSkipPlugin.AcceptedSleepingCount = count + SleepSkipPlugin.AcceptedSleepCount;
         // Calculate current ratio of people sleeping
-        int sleepRatio = SleepSkipPlugin.AcceptedSleepingCount / allCharacterZdos.Count;
+        float sleepRatio = (float)SleepSkipPlugin.AcceptedSleepingCount / allCharacterZdos.Count;
 
         // Update number display on the client
         foreach (ZNetPeer instanceMPeer in ZNet.instance.m_peers)
@@ -93,7 +95,7 @@ internal static class GameEverybodyIsTryingToSleepPatch
         if ((sleepRatio * 100) >= SleepSkipPlugin.Ratio.Value)
         {
             SleepSkipPlugin.SleepSkipLogger.LogDebug($"Threshold of {SleepSkipPlugin.Ratio.Value} reached, sleeping...");
-            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, "ResetEveryone");
+            ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, nameof(SleepSkipPlugin.ResetVariables));
             __result = true;
             return false;
         }

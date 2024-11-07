@@ -1,4 +1,7 @@
 > # Update Information (Latest listed first)
+> ### 1.2.1
+> - Allow skipping time if one player is alone in bed and the only one on the server.
+> - Fix small issue with UI reset.
 > ### 1.2.0
 > - Add a configuration option to always accept/deny sleep requests. (Client option, not synced with server)
 > - Add configuration option for the amount of players needed in a bed to begin a vote. Default 2 (Server option, synced with server)
