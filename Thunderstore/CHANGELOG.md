@@ -1,4 +1,6 @@
 > # Update Information (Latest listed first)
+> ### 1.2.2
+> - Update SeverSync internally
 > ### 1.2.1
 > - Allow skipping time if one player is alone in bed and the only one on the server.
 > - Fix small issue with UI reset.
