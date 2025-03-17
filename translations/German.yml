@@ -1,10 +1,10 @@
-sleep_denied_combat: "Schlafanforderung automatisch abgelehnt, Sie befinden sich im Kampf!"
-sleep_skip: "Schlafüberspringung angefordert"
-sleep_canceled_by: "Der Schlaf abgebrochen von {0}"
-sleep_canceled_reason: "{0} automatisch abgebrochen. Sie waren im Kampf."
-sleep_request: "{0} {1} zu schlafen. Machst du das?" # Will appear like this: "7 players want to sleep. Do you?" or "1 player wants to sleep. Do you?" uses the variables below
+sleep_denied_combat: "Schlafen automatisch abgelehnt, Sie befinden sich im Kampf!"
+sleep_skip: "Schlafen angefordert"
+sleep_canceled_by: "Schlafen abgelehnt von {0}"
+sleep_canceled_reason: "{0} automatisch abgelehnt. Es wurde gekämpft."
+sleep_request: "{0} {1} zu schlafen. Willst du?" # Will appear like this: "7 players want to sleep. Do you?" or "1 player wants to sleep. Do you?" uses the variables below
 sleep_warning_time: "Das Schlaf-Popup wird in {0} Sekunden angezeigt"
 player: "Spieler"
 player_plural: "Spieler"
-want: "wollen"
-want_multiple: "wollen"
+want: "versucht"
+want_multiple: "versuchen"
