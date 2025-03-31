@@ -107,6 +107,34 @@ internal static class GameEverybodyIsTryingToSleepPatch
     }
 }
 
+[HarmonyPatch(typeof(UnifiedPopup), nameof(UnifiedPopup.Awake))]
+static class SwapYesNoButonsUnifiedPopupAwakePatch
+{
+    static void Postfix(UnifiedPopup __instance)
+    {
+        SwapAnchoredPositions(__instance);
+    }
+
+    public static void SwapAnchoredPositions(UnifiedPopup __instance)
+    {
+        if (__instance.buttonLeft == null || __instance.buttonRight == null)
+        {
+            return;
+        }
+
+        RectTransform rtYes = __instance.buttonRight.GetComponent<RectTransform>();
+        RectTransform rtNo = __instance.buttonLeft.GetComponent<RectTransform>();
+
+        if (rtYes == null || rtNo == null)
+        {
+            return;
+        }
+
+        // Swap the anchored positions via deconstruction.
+        (rtYes.anchoredPosition, rtNo.anchoredPosition) = (rtNo.anchoredPosition, rtYes.anchoredPosition);
+    }
+}
+
 [HarmonyPatch(typeof(UnifiedPopup), nameof(UnifiedPopup.IsVisible))]
 static class UnifiedPopupIsVisiblePatch
 {

@@ -1,4 +1,6 @@
 > # Update Information (Latest listed first)
+> ### 1.2.3
+> - Swap buttons in the yes/no popup to make Shroud's team happy. He's a nice guy, so I'm nice back.
 > ### 1.2.2
 > - Update SeverSync internally
 > ### 1.2.1
