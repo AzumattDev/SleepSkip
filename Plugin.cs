@@ -16,7 +16,7 @@ namespace SleepSkip
     public class SleepSkipPlugin : BaseUnityPlugin
     {
         internal const string ModName = "SleepSkip";
-        internal const string ModVersion = "1.2.3";
+        internal const string ModVersion = "1.2.4";
         internal const string Author = "Azumatt";
         private const string ModGUID = Author + "." + ModName;
         private static string ConfigFileName = ModGUID + ".cfg";
