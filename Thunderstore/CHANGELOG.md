@@ -1,4 +1,20 @@
 > # Update Information (Latest listed first)
+> ### 1.3.0
+> #### Bug Fixes
+> - Fix single decline canceling sleep for the entire server. Declining now records a "no" vote instead of vetoing everyone. The vote only fails when it's mathematically impossible to reach the threshold.
+> - Fix malformed RPC in OnAcceptSleep that caused accept notifications to silently fail.
+> - Fix in-bed players being double-counted when they also received and accepted the vote popup. Popup is now only sent to players who are not in bed.
+> - Fix vote state (AcceptedSleepCount) not resetting when all players leave bed, causing stale votes to carry over.
+> - Fix listen server host never seeing warning countdowns or sleep cancel/result notifications.
+> - Fix InCombat flag being a sticky static that could persist across vote cycles. Now uses a local variable per check.
+> - Remove unused SleepDelayInMinutes config field.
+> #### New Features
+> - **Per-player vote tracking**: Votes are now tracked by player ID using HashSets, preventing double-voting and enabling accurate vote counts.
+> - **Vote timeout**: New "Vote Timeout" config (default 45s). After the timeout, non-responding players are counted as abstaining and removed from the vote denominator, so AFK players can't block sleep.
+> - **Sleep cooldown**: New "Sleep Cooldown" config (default 0, disabled). Prevents repeated sleep vote attempts within a configurable window.
+> - **Live vote display in popup**: The popup now shows real-time vote status including in-bed count, yes votes, no votes, waiting count, total players, and the required threshold percentage.
+> - **Late joiner support**: Players who join or leave bed mid-vote now receive the popup and can participate.
+> - **Vote result notifications**: All players (including the host) receive a clear message when a vote passes or fails, and the popup is automatically dismissed.
 > ### 1.2.4
 > - Update to fix localization issues in 0.221.10
 > ### 1.2.3
