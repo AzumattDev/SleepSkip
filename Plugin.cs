@@ -45,6 +45,12 @@ public class SleepSkipPlugin : BaseUnityPlugin
     internal static int DisplayWaiting = 0;
     internal static int DisplayTotal = 0;
 
+    // Client-side riding detach guard state
+    private const int DetachBlockMaxSlots = 4;
+    private const double DetachBlockTimeoutSeconds = 2.0;
+    private static int _detachBlockRemaining;
+    private static DateTime _detachBlockArmedAtUtc = DateTime.MinValue;
+
     private enum Toggle
     {
         On = 1,
@@ -125,6 +131,8 @@ public class SleepSkipPlugin : BaseUnityPlugin
         DisplayNo = 0;
         DisplayWaiting = 0;
         DisplayTotal = 0;
+        _detachBlockRemaining = 0;
+        _detachBlockArmedAtUtc = DateTime.MinValue;
     }
 
     internal static void OpenMenuOnClient(long senderId)
@@ -151,9 +159,24 @@ public class SleepSkipPlugin : BaseUnityPlugin
         {
             p.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$sleep_denied_combat"));
             // Auto-decline due to combat (just sends VoteNo, does NOT cancel for everyone)
-            CreatePopup();
-            UnifiedPopup.instance.buttonLeft.onClick.Invoke();
+            SendVoteRpc(nameof(VoteNo));
             return;
+        }
+
+        if (IsPlayerRidingSaddle(p))
+        {
+            switch (PopupAutoChoice.Value)
+            {
+                case AutoChoice.AlwaysAccept:
+                    SendVoteRpc(nameof(VoteYes));
+                    return;
+                case AutoChoice.AlwaysDecline:
+                    SendVoteRpc(nameof(VoteNo));
+                    return;
+                default:
+                    CreatePopup();
+                    return;
+            }
         }
 
         switch (PopupAutoChoice.Value)
@@ -198,15 +221,53 @@ public class SleepSkipPlugin : BaseUnityPlugin
     internal static void OnDeclineSleep()
     {
         SleepSkipLogger.LogDebug("Declined sleep request");
-        ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, nameof(VoteNo), ZNet.GetUID());
+        SendVoteRpc(nameof(VoteNo));
         UnifiedPopup.Pop();
     }
 
     internal static void OnAcceptSleep()
     {
         SleepSkipLogger.LogDebug("Accepted sleep request");
-        ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, nameof(VoteYes), ZNet.GetUID());
+        SendVoteRpc(nameof(VoteYes));
         UnifiedPopup.Pop();
+    }
+
+    internal static bool IsPlayerRidingSaddle(Player player)
+    {
+        if (!player.IsAttached()) return false;
+        try
+        {
+            return player.GetDoodadController() is Sadle;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    internal static void ArmDetachBlock()
+    {
+        _detachBlockRemaining = DetachBlockMaxSlots;
+        _detachBlockArmedAtUtc = DateTime.UtcNow;
+    }
+
+    internal static bool TryConsumeDetachBlock()
+    {
+        if (_detachBlockRemaining <= 0) return false;
+        if ((DateTime.UtcNow - _detachBlockArmedAtUtc).TotalSeconds > DetachBlockTimeoutSeconds)
+        {
+            _detachBlockRemaining = 0;
+            return false;
+        }
+
+        _detachBlockRemaining--;
+        return true;
+    }
+
+    internal static void SendVoteRpc(string rpcName)
+    {
+        if (ZRoutedRpc.instance == null) return;
+        ZRoutedRpc.instance.InvokeRoutedRPC(ZRoutedRpc.Everybody, rpcName, ZNet.GetUID());
     }
 
     internal static void VoteYes(long senderId, long voterId)

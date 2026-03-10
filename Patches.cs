@@ -290,6 +290,47 @@ internal static class GameEverybodyIsTryingToSleepPatch
     }
 }
 
+[HarmonyPatch(typeof(Game), nameof(Game.SleepStop))]
+internal static class GameSleepStopPatch
+{
+    static void Prefix()
+    {
+        if (Player.m_localPlayer == null) return;
+        if (SleepSkipPlugin.IsPlayerRidingSaddle(Player.m_localPlayer))
+            SleepSkipPlugin.ArmDetachBlock();
+    }
+}
+
+[HarmonyPatch(typeof(Character), nameof(Character.AttachStop))]
+internal static class CharacterAttachStopPatch
+{
+    static bool Prefix(Character __instance)
+    {
+        if (__instance != Player.m_localPlayer) return true;
+        return !SleepSkipPlugin.TryConsumeDetachBlock();
+    }
+}
+
+[HarmonyPatch(typeof(Player), nameof(Player.AttachStop))]
+internal static class PlayerAttachStopPatch
+{
+    static bool Prefix(Player __instance)
+    {
+        if (__instance != Player.m_localPlayer) return true;
+        return !SleepSkipPlugin.TryConsumeDetachBlock();
+    }
+}
+
+[HarmonyPatch(typeof(Player), nameof(Player.StopDoodadControl))]
+internal static class PlayerStopDoodadControlPatch
+{
+    static bool Prefix(Player __instance)
+    {
+        if (__instance != Player.m_localPlayer) return true;
+        return !SleepSkipPlugin.TryConsumeDetachBlock();
+    }
+}
+
 [HarmonyPatch(typeof(UnifiedPopup), nameof(UnifiedPopup.Awake))]
 static class SwapYesNoButonsUnifiedPopupAwakePatch
 {
