@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SleepSkip", "SleepSkip.csproj", "{4358610B-F3F4-4843-B7AF-98B7BC60DCDE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SleepSkip.RidingGuard", "SleepSkip.RidingGuard\SleepSkip.RidingGuard.csproj", "{C7B8B8D4-7DE3-4B2B-9F85-1F6273A3A3D1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{4358610B-F3F4-4843-B7AF-98B7BC60DCDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4358610B-F3F4-4843-B7AF-98B7BC60DCDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4358610B-F3F4-4843-B7AF-98B7BC60DCDE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7B8B8D4-7DE3-4B2B-9F85-1F6273A3A3D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7B8B8D4-7DE3-4B2B-9F85-1F6273A3A3D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7B8B8D4-7DE3-4B2B-9F85-1F6273A3A3D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7B8B8D4-7DE3-4B2B-9F85-1F6273A3A3D1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
