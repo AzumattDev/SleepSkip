@@ -295,6 +295,7 @@ internal static class GameSleepStopPatch
 {
     static void Prefix()
     {
+        // Arm the dismount guard only when local player is currently saddle-riding.
         if (Player.m_localPlayer == null) return;
         if (SleepSkipPlugin.IsPlayerRidingSaddle(Player.m_localPlayer))
             SleepSkipPlugin.ArmDetachBlock();
@@ -306,6 +307,7 @@ internal static class CharacterAttachStopPatch
 {
     static bool Prefix(Character __instance)
     {
+        // Block forced detach for local player while the guard is active.
         if (__instance != Player.m_localPlayer) return true;
         return !SleepSkipPlugin.TryConsumeDetachBlock();
     }
@@ -316,6 +318,7 @@ internal static class PlayerAttachStopPatch
 {
     static bool Prefix(Player __instance)
     {
+        // Some call paths resolve to Player.AttachStop directly.
         if (__instance != Player.m_localPlayer) return true;
         return !SleepSkipPlugin.TryConsumeDetachBlock();
     }
@@ -326,6 +329,7 @@ internal static class PlayerStopDoodadControlPatch
 {
     static bool Prefix(Player __instance)
     {
+        // Prevent control teardown from dropping the rider during the same guard window.
         if (__instance != Player.m_localPlayer) return true;
         return !SleepSkipPlugin.TryConsumeDetachBlock();
     }

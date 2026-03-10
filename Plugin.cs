@@ -45,7 +45,7 @@ public class SleepSkipPlugin : BaseUnityPlugin
     internal static int DisplayWaiting = 0;
     internal static int DisplayTotal = 0;
 
-    // Client-side riding detach guard state
+    // Guard window used to suppress forced dismount calls triggered by Game.SleepStop.
     private const int DetachBlockMaxSlots = 4;
     private const double DetachBlockTimeoutSeconds = 2.0;
     private static int _detachBlockRemaining;
@@ -165,6 +165,7 @@ public class SleepSkipPlugin : BaseUnityPlugin
 
         if (IsPlayerRidingSaddle(p))
         {
+            // While mounted, keep vote behavior aligned with PopupAutoChoice without forcing detach.
             switch (PopupAutoChoice.Value)
             {
                 case AutoChoice.AlwaysAccept:
@@ -237,6 +238,7 @@ public class SleepSkipPlugin : BaseUnityPlugin
         if (!player.IsAttached()) return false;
         try
         {
+            // In current Valheim builds, saddle riding is represented as a Sadle doodad controller.
             return player.GetDoodadController() is Sadle;
         }
         catch
@@ -253,6 +255,7 @@ public class SleepSkipPlugin : BaseUnityPlugin
 
     internal static bool TryConsumeDetachBlock()
     {
+        // Consume a limited number of detach blocks inside a short time window.
         if (_detachBlockRemaining <= 0) return false;
         if ((DateTime.UtcNow - _detachBlockArmedAtUtc).TotalSeconds > DetachBlockTimeoutSeconds)
         {
