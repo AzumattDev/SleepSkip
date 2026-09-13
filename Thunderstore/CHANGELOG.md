@@ -1,4 +1,6 @@
 > # Update Information (Latest listed first)
+> ### 1.3.1
+> - Update for Valheim 1.0
 > ### 1.3.0
 > #### Bug Fixes
 > - Fix single decline canceling sleep for the entire server. Declining now records a "no" vote instead of vetoing everyone. The vote only fails when it's mathematically impossible to reach the threshold.
